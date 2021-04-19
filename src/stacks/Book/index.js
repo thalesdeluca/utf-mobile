@@ -8,7 +8,15 @@ const Stack = createStackNavigator();
 
 const BookNavigator = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator 
+    screenOptions={{ 
+      headerTitleAlign: 'center', 
+      headerLeft: navigation.canGoBack() && HeaderBackButton,
+      headerStyle: {
+        elevation: 0,
+        shadowColor: '#fff'
+      } 
+    }}>
       <Stack.Screen name="ListBook" component={ListBook}/>
       <Stack.Screen name="NewBook" component={NewBook}/>
     </Stack.Navigator>

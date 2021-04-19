@@ -41,7 +41,7 @@ export default (state = INITIAL_STATE, action) => {
   }
 }
 
-const login = () => {
+export const login = () => {
   return (dispatch) => {
     try {
       dispatch({ type: Types.AUTH_REQUEST,  payload: params })
@@ -51,7 +51,7 @@ const login = () => {
   }
 }
 
-const register = () => {
+export const register = () => {
   return (dispatch) => {
     try {
       dispatch({ type: Types.REGISTER_REQUEST,  payload: params })
