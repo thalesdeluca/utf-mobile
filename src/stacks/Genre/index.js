@@ -1,6 +1,7 @@
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, HeaderBackButton } from '@react-navigation/stack';
 import React from 'react';
 import { View } from 'react-native';
+import i18n from '../../config/lang';
 import ListGenre from './screens/list';
 import NewGenre from './screens/new';
 
@@ -8,7 +9,7 @@ import NewGenre from './screens/new';
 
 const Stack = createStackNavigator();
 
-const GenreNavigator = () => {
+const GenreNavigator = ({ navigation }) => {
   return (
     <Stack.Navigator 
     screenOptions={{ 
@@ -19,8 +20,8 @@ const GenreNavigator = () => {
         shadowColor: '#fff'
       } 
     }}>
-      <Stack.Screen name="ListGenre" component={ListGenre}/>
-      <Stack.Screen name="NewGenre" component={NewGenre}/>
+      <Stack.Screen name="ListGenre" component={ListGenre} options={{ title: i18n.t('listGenre')}}/>
+      <Stack.Screen name="NewGenre" component={NewGenre} options={{ title: i18n.t('newGenre')}}/>
     </Stack.Navigator>
   )
 }

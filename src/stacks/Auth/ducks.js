@@ -1,11 +1,11 @@
+import { Alert } from 'react-native';
+import firebase from '../../config/firebase';
+
 export const Types = {
   AUTH_REQUEST: "AUTH_REQUEST",
   AUTH_SUCCESS: 'AUTH_SUCCESS',
+  AUTH_LOGOUT: 'AUTH_LOGOUT',
   AUTH_FAILED: 'AUTH_FAILED',
-
-  REGISTER_REQUEST: "REGISTER_REQUEST",
-  REGISTER_SUCCESS: 'REGISTER_SUCCESS',
-  REGISTER_FAILED: 'REGISTER_FAILED',
 }
 
 const INITIAL_STATE = {
@@ -13,50 +13,82 @@ const INITIAL_STATE = {
 
   loading: false,
   error: false,
+  success: false
 }
 
 export default (state = INITIAL_STATE, action) => {
   switch(action.type) {
-   case Types.GET_BOOKS_REQUEST: 
+   case Types.AUTH_REQUEST: 
       return  {
         ...state,
-        size: action?.payload?.size,
-        books: [],
+        user: null,
         loading: true,
-        error: false
+        error: false,
       }
-    case Types.GET_BOOKS_SUCCESS: 
+    case Types.AUTH_SUCCESS: 
       return  {
         ...state,
-        books: [],
+        user: action.payload,
         loading: false,
-        error: false
+        error: false,
       }
-    case Types.GET_BOOKS_FAILED: 
+    case Types.AUTH_FAILED: 
       return  {
         ...state,
+        user: null,
         loading: false,
-        error: action.payload
+        error: action.payload,
       }
+
+    case Types.AUTH_LOGOUT: 
+      return  {
+        ...state,
+        user: null,
+        loading: false,
+        error: null,
+      }
+      
+    default: return state;
   }
 }
 
-export const login = () => {
-  return (dispatch) => {
+export const login = (params) => {
+
+  return async (dispatch) => {
     try {
+      const { email, password } = params
       dispatch({ type: Types.AUTH_REQUEST,  payload: params })
+
+      const user = await firebase.auth().signInWithEmailAndPassword(email, password);
+
+      dispatch({ type: Types.AUTH_SUCCESS,  payload: user })
     } catch(err) {
+      console.log("err", err)
+      Alert.alert("Error", err.message);
       dispatch({ type: Types.AUTH_FAILED,  payload: err })
     }
   }
 }
 
-export const register = () => {
-  return (dispatch) => {
+export const register = (params) => {
+  return async (dispatch) => {
     try {
-      dispatch({ type: Types.REGISTER_REQUEST,  payload: params })
+      const { email, password } = params
+      dispatch({ type: Types.AUTH_REQUEST,  payload: params })
+
+      const user = await firebase.auth().createUserWithEmailAndPassword(email, password);
+
+      dispatch({ type: Types.AUTH_SUCCESS,  payload: user })
+
     } catch(err) {
-      dispatch({ type: Types.REGISTER_FAILED,  payload: err })
+      Alert.alert("Error", err.message);
+      dispatch({ type: Types.AUTH_FAILED,  payload: err })
     }
+  }
+}
+
+export const logout = () => {
+  return async (dispatch) => {
+    dispatch({ type: Types.AUTH_LOGOUT})
   }
 }

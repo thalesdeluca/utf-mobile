@@ -6,7 +6,7 @@ import styles from './styles';
 // import { Container } from './styles';
 
 const Input = ({ control, name, label, defaultValue, errors = {}, ...props}) => {
-
+  console.log(errors)
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label || name}</Text>
@@ -25,7 +25,7 @@ const Input = ({ control, name, label, defaultValue, errors = {}, ...props}) => 
     
             defaultValue={defaultValue}
           />
-        {errors?.[name] && <Text>This is required.</Text>}
+        {errors?.[name] && <Text style={styles.error}>{errors[name]?.message}</Text>}
       </View>
     )
 }

@@ -1,3 +1,7 @@
+import { Alert } from 'react-native';
+import firebase from '../../config/firebase';
+const db = firebase.database();
+
 export const Types = {
   GET_BOOKS_REQUEST: "GET_BOOKS_REQUEST",
   GET_BOOKS_SUCCESS: 'GET_BOOKS_SUCCESS',
@@ -25,7 +29,6 @@ const INITIAL_STATE = {
   success: false,
   error: false,
 }
-
 export default (state = INITIAL_STATE, action) => {
   switch(action.type) {
     case Types.GET_BOOKS_REQUEST: 
@@ -39,7 +42,7 @@ export default (state = INITIAL_STATE, action) => {
     case Types.GET_BOOKS_SUCCESS: 
       return  {
         ...state,
-        books: [],
+        books: action.payload,
         loading: false,
         error: false
       }
@@ -97,14 +100,27 @@ export default (state = INITIAL_STATE, action) => {
         loading: false,
         error: action.payload
       }
+      default:
+        return state
   }
 }
 
 export const getBooks = (params) => {
-  return (dispatch) => {
+  return async (dispatch) => {
+    
     try {
-      dispatch({ type: Types.GET_BOOKS_REQUEST,  payload: params })
+      dispatch({ type: Types.GET_BOOKS_REQUEST })
+      const data = await db.ref('books/').get();
+      const mapped = Object.entries(data?.val()).map(([key, value]) => ({ id: key, ...value}));
+      dispatch({ 
+        type: Types.GET_BOOKS_SUCCESS,
+        payload: mapped 
+      })
+
+      console.log('teste')
     } catch(err) {
+      
+      Alert.alert("Error", err?.message);
       dispatch({ type: Types.GET_BOOKS_FAILED,  payload: err })
     }
   }
@@ -116,26 +132,45 @@ export const getBookById = (params) => {
     try {
       dispatch({ type: Types.GET_BOOK_BY_ID_REQUEST,  payload: params })
     } catch(err) {
+      Alert.alert("Error", err?.message);
       dispatch({ type: Types.GET_BOOK_BY_ID_FAILED,  payload: err })
     }
   }
 }
 
-export const saveBook = () => {
-  return (dispatch) => {
+export const saveBook = ({ id, ...params}) => {
+  return async (dispatch) => {
     try {
       dispatch({ type: Types.SAVE_BOOK_REQUEST,  payload: params })
+     
+      let data;
+
+      if(id) {
+        data = await db.ref(`books/`).child(id).set(params);  
+      } else {
+        data = await db.ref("books/").push(params);  
+      }
+      
+      
+      
+      dispatch({ type: Types.SAVE_BOOK_SUCCESS })
+      dispatch({ type: Types.GET_BOOKS_REQUEST })
+
     } catch(err) {
+      console.log(err)
+      Alert.alert("Error", err?.message);
       dispatch({ type: Types.SAVE_BOOK_FAILED,  payload: err })
     }
   }
 }
 
-export const deleteBook = () => {
-  return (dispatch) => {
+export const deleteBook = (id ) => {
+  return async (dispatch) => {
     try {
-      dispatch({ type: Types.DELETE_BOOK_REQUEST,  payload: params })
+      dispatch({ type: Types.DELETE_BOOK_REQUEST })
+      const data = await db.ref("books/").child(id).remove(); 
     } catch(err) {
+      Alert.alert("Error", err?.message);
       dispatch({ type: Types.DELETE_BOOK_FAILED,  payload: err })
     }
   }

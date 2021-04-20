@@ -1,3 +1,7 @@
+import { Alert } from 'react-native';
+import firebase from '../../config/firebase';
+const db = firebase.database();
+
 export const Types = {
   GET_GENRES_REQUEST: "GET_GENRES_REQUEST",
   GET_GENRES_SUCCESS: 'GET_GENRES_SUCCESS',
@@ -39,7 +43,7 @@ export default (state = INITIAL_STATE, action) => {
     case Types.GET_GENRES_SUCCESS: 
       return  {
         ...state,
-        genres: [],
+        genres: action.payload,
         loading: false,
         error: false
       }
@@ -97,13 +101,23 @@ export default (state = INITIAL_STATE, action) => {
         loading: false,
         error: action.payload
       }
+
+    default: 
+      return state
   }
 }
 
 export const getGenres = (params) => {
-  return (dispatch) => {
+  return async (dispatch) => {
     try {
       dispatch({ type: Types.GET_GENRES_REQUEST,  payload: params })
+      const data = await db.ref('genres/').get();
+    
+      const mapped = Object.entries(data?.val()).map(([key, value]) => ({ id: key, ...value}));
+      dispatch({ 
+        type: Types.GET_GENRES_SUCCESS,
+        payload: mapped 
+      })
     } catch(err) {
       dispatch({ type: Types.GET_GENRES_FAILED,  payload: err })
     }
@@ -121,10 +135,22 @@ export const getGenreById = (params) => {
   }
 }
 
-export const saveGenre = () => {
-  return (dispatch) => {
+export const saveGenre = ({ id, ...params}) => {
+  return async (dispatch) => {
+
     try {
       dispatch({ type: Types.SAVE_GENRE_REQUEST,  payload: params })
+
+      let data;
+
+      if(id) {
+        data = await db.ref(`genres/`).child(id).set(params);  
+      } else {
+        data = await db.ref("genres/").push(params);  
+      }
+      
+      dispatch({ type: Types.SAVE_GENRE_SUCCESS })
+      dispatch({ type: Types.GET_GENRES_REQUEST })
     } catch(err) {
       dispatch({ type: Types.SAVE_GENRE_FAILED,  payload: err })
     }
@@ -132,9 +158,10 @@ export const saveGenre = () => {
 }
 
 export const deleteGenre = () => {
-  return (dispatch) => {
+  return async (dispatch) => {
     try {
       dispatch({ type: Types.DELETE_GENRE_REQUEST,  payload: params })
+      const data = await db.ref("genres/").child(id).remove(); 
     } catch(err) {
       dispatch({ type: Types.DELETE_GENRE_FAILED,  payload: err })
     }

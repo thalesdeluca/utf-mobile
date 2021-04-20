@@ -1,50 +1,59 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { KeyboardAvoidingView, SafeAreaView, Text, View } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { ActivityIndicator, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Container, Input, Button } from '../../../components';
+import { Container, Input, Button, TextButton } from '../../../components';
 import { login } from '../ducks';
 
 import styles from './styles';
+import i18n from '../../../config/lang';
 
 const validationSchema = yup.object().shape({
-  email: yup.string().email("Invalid Email").required('Email is Required'),
-  password: yup.string().required("Password is required")
+  email: yup.string().email(i18n.t('emailInvalid')).required(i18n.t('emailRequired')),
+  password: yup.string().required(i18n.t('passwordRequired'))
 })
-// import { Container } from './styles';
 
-const Login = () => {
-  const { control, register, errors, handleSubmit } = useForm({
+const Login = ({ navigation }) => {
+  const { loading, error, user, ...params } = useSelector(state => state.auth);
+
+  const { control, register, formState: { errors }, handleSubmit } = useForm({
     resolver: yupResolver(validationSchema)
   })
+
+  console.log(errors)
   const dispatch = useDispatch()
 
   const onSubmit = (values) => {
     dispatch(login(values));
   }
 
-
   return (
     <Container style={styles.container}>
       <KeyboardAvoidingView behaviour="padding">
         <Input 
           name="email" 
-          label="Email" 
+          label={i18n.t('email')} 
           control={control} 
           errors={errors} 
         />
         <Input 
           name="password" 
-          label="Password" 
+          label={i18n.t('password')} 
           secureTextEntry 
           control={control} 
           errors={errors} 
         />
 
-        <Button title="Log in" onPress={handleSubmit(onSubmit)}/>
+        {loading 
+          ? <ActivityIndicator size={32} color="#2196f3" /> 
+          : <Button title={i18n.t("login")} onPress={handleSubmit(onSubmit)} />
+        }
+
       </KeyboardAvoidingView>
+
+      <TextButton onPress={() => navigation.navigate('Register')} title={i18n.t('needAnAccount')} />
     </Container>
   );
 }
